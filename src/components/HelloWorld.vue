@@ -1,42 +1,41 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <button @click="addrouter">lalal</button>
-
+  <div>
+    <h1 align="center">{{ msg }}</h1>
+    <el-button class=marginClass>新增路由</el-button>
     <el-table
     :data="apiArray"
-    style="width: 100%">
+    style="width: 100%;text-align: center;">
     <el-table-column
       label="ID"
-      width="180">
+      >
       <template slot-scope="scope">
         <span style="margin-left: 10px">{{ scope.row.id }}</span>
       </template>
     </el-table-column>
     <el-table-column
       label="姓名"
-      width="180">
+      >
       <template slot-scope="scope">
         <span style="margin-left: 10px">{{ scope.row.name }}</span>
       </template>
     </el-table-column>
     <el-table-column
       label="路由"
-      width="180">
+      >
       <template slot-scope="scope">
         <span style="margin-left: 10px">{{ scope.row.router }}</span>
       </template>
     </el-table-column>
     <el-table-column
       label="Method"
-      width="180">
+      >
       <template slot-scope="scope">
         <span style="margin-left: 10px">{{ scope.row.method }}</span>
       </template>
     </el-table-column>
     <el-table-column
       label="JSON"
-      width="180">
+      >
       <template slot-scope="scope">
         <span style="margin-left: 10px">{{ scope.row.json }}</span>
       </template>
@@ -64,7 +63,10 @@ export default {
   data () {
     return {
       msg: 'Welcome to Your Vue.js App',
-      apiArray:[]
+      apiArray:[],
+      marginClass:{
+        
+      }
     }
   },
   mounted:function(){
@@ -72,9 +74,10 @@ export default {
       url:'/getrouter',
       method:"get"
     }).then(response=>{
+      // console.log(response)
       if(response.data.state == 'success'){
           this.apiArray = response.data.data
-          console.log(response.data.data)
+          // console.log(response.data.data)
         }else{
 
         }
@@ -94,6 +97,26 @@ export default {
         // console.log(response.data)
         
       })
+    },
+    handleDelete(index){
+      console.log(index)
+      request({
+        url:'/deleterouter',
+        method:'post',
+        data:this.apiArray[index]
+      }).then(response=>{
+        if(response.data.state == 'success'){
+          let obj = this.apiArray.splice(index,1)
+          console.log(obj)
+          console.log(response.data.data)
+        }else{
+
+        }
+        
+      })
+    },
+    handleEdit(index){
+
     }
   }
 }
@@ -114,5 +137,11 @@ li {
 }
 a {
   color: #42b983;
+}
+.marginClass{
+  margin-left: 40px;
+}
+.addrouterClass{
+  margin-bottom: 40px;
 }
 </style>

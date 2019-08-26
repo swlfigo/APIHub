@@ -1,6 +1,9 @@
 const express = require('express')
 const router= require('./router/router')
 const app = express()
+const sqlite3 = require('sqlite3')
+const db = new sqlite3.Database('./api.db')
+
 // 引入json解析中间件
 var bodyParser = require('body-parser');
 // 添加json解析
@@ -21,6 +24,26 @@ app.use(function(req, res, next) {
     next();
   });
 app.use('/api',router)
+app.get('/*',function(req,res){
+  // console.log(req.path)
+  let sqlStr = `SELECT * FROM api WHERE router = '${(req.path)}'`
+  // console.log(sqlStr)
+  db.all(sqlStr,function(err,result){
+      if(err){
+        res.send({
+          state:'fail',
+          data:[]
+        })
+      }else{
+        res.send({
+          state:'success',
+          data:result
+        })
+      }
+  })
+  
+})
+
 app.listen(3000,function(){
-    console.log('Example app listening on port 3000!');
+    console.log('APIHUB listening on port 3000!');
 })

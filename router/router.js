@@ -72,7 +72,7 @@ router.post('/deleterouter',function(req,res){
         return
     }
     let sqlStr = `DELETE FROM api WHERE ID = '${json.id}';`
-    console.log(sqlStr)
+    // console.log(sqlStr)
     db.run(sqlStr,function(err){
         if(err){
             res.send({
@@ -90,6 +90,44 @@ router.post('/deleterouter',function(req,res){
 
 })
 
+router.post('/queryrouterapi',function(req,res){
+    json = req.body
+    // console.log('check api')
+    console.log(json)
+    if (json.id === null){
+        res.send({
+            state:'fail',
+            description:'api input empty',
+            data:[]
+        })
+        return
+    }
+    let sqlStr = `SELECT * FROM api WHERE router = '${json.router}';`
+    console.log(sqlStr)
+    db.all(sqlStr,function(err,result){
+        if(err){
+            res.send({
+                state:'fail',
+                data:[]
+            })
+        }else{
+            console.log(result)
+            if(result.length > 0){
+                res.send({
+                    state:'success',
+                    data:result
+                })
+            }else{
+                res.send({
+                    state:'success',
+                    data:[]
+                })
+            }
+            
+        }
+
+    })
+})
 
 
 module.exports = router;

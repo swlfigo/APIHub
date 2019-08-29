@@ -1,13 +1,13 @@
 const express = require("express")
-const router= express.Router()
+const router = express.Router()
 const sqlite3 = require('sqlite3')
 
-const db = new sqlite3.Database('./api.db',function(){
+const db = new sqlite3.Database('./api.db', function () {
     sqlStr = "create table if not exists api (id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT, router TEXT,method TEXT , json TEXT)"
-    db.run(sqlStr,function(err){
-        if(err){
+    db.run(sqlStr, function (err) {
+        if (err) {
             console.log('err create db')
-        }else{
+        } else {
             console.log('success create db')
 
         }
@@ -16,73 +16,96 @@ const db = new sqlite3.Database('./api.db',function(){
 
 
 
-router.get('/getrouter',function(req,res){
+router.get('/getrouter', function (req, res) {
     let sqlStr1 = `SELECT * FROM api`
-    db.all(sqlStr1,function(err,result){
+    db.all(sqlStr1, function (err, result) {
         // console.log(result)
         // console.log(err)
-        if(err){
+        if (err) {
             res.send({
-                state:'fail',
-                data:[]
+                state: 'fail',
+                data: []
             })
-        }else{
+        } else {
             // console.log(result)
             res.send({
-                state:'success',
-                data:result
+                state: 'success',
+                data: result
             })
         }
-        
+
     })
-    
+
 })
 
-router.post('/addrouter',function(req,res){
-    let str = JSON.stringify(req.body)
-    console.log(str)
-    const obj = {aa: 33,bb:444}
-    const strObj = JSON.stringify(obj)
-    let stmt = `INSERT INTO api (id,name,router,method,json) VALUES(NULL, '测试','/api/test','post','${JSON.stringify({aa: 33,bb:444})}')`;
-    db.run(stmt,function(err){
-        if(err){
+router.post('/addrouter', function (req, res) {
+    console.log('addRouter',req.body)
+    let insertStr = `INSERT INTO api (id,name,router,method,json) VALUES(NULL, '${req.body.name}','${req.body.router}','${req.body.method}','${JSON.stringify(req.body.json)}')`
+    let searchStr = `SELECT * FROM api WHERE router = '${req.body.router}' AND method = '${req.body.method}'`
+    db.all(searchStr, function (err, result) {
+        if (err) {
             res.send({
-                state:'fail add router',
-                data:[]
+                state: 'fail',
+                description: 'fail at search sql Str',
+                data: []
             })
-        }else{
-            // console.log('sucess')
-            res.send({
-                state:'success add router',
-                data:[]
-            })
+        } else {
+            if (result.length > 0) {
+                res.send({
+                    state: 'fail',
+                    description: 'fail at Same Router',
+                    data: []
+                })
+
+            } else {
+                console.log(insertStr)
+                db.run(insertStr, function (errInsertStr, insertResult) {
+                    console.log(errInsertStr)
+                    if (err) {
+                        res.send({
+                            state: 'fail',
+                            description: 'fail at insert Router',
+                            data: []
+                        })
+                    } else {
+                        res.send({
+                            state: 'success',
+                            data: []
+                        })
+                    }
+
+                })
+
+            }
+
         }
 
     });
 })
 
-router.post('/deleterouter',function(req,res){
+router.post('/deleterouter', function (req, res) {
     json = req.body
-    console.log('deleteRouter')
-    if (json.id === null){
+    // console.log('deleteRouter')
+    if (json.id === null) {
         res.send({
-            state:'id is empty',
-            data:[]
+            state: 'fail',
+            description:'id empty',
+            data: []
         })
         return
     }
     let sqlStr = `DELETE FROM api WHERE ID = '${json.id}';`
     // console.log(sqlStr)
-    db.run(sqlStr,function(err){
-        if(err){
+    db.run(sqlStr, function (err) {
+        if (err) {
             res.send({
-                state:'fail',
-                data:[]
+                state: 'fail',
+                data: []
             })
-        }else{
+        } else {
             res.send({
-                state:'success',
-                data:[]
+                state: 'success',
+                data: []
             })
         }
 
@@ -90,40 +113,40 @@ router.post('/deleterouter',function(req,res){
 
 })
 
-router.post('/queryrouterapi',function(req,res){
+router.post('/queryrouterapi', function (req, res) {
     json = req.body
-    // console.log('check api')
-    console.log(json)
-    if (json.id === null){
+    if (json.id === null) {
         res.send({
-            state:'fail',
-            description:'api input empty',
-            data:[]
+            state: 'fail',
+            description: 'api input empty',
+            data: []
         })
         return
     }
-    let sqlStr = `SELECT * FROM api WHERE router = '${json.router}';`
-    console.log(sqlStr)
-    db.all(sqlStr,function(err,result){
-        if(err){
+    let sqlStr = `SELECT * FROM api WHERE router = '${json.router}' AND method = '${json.method}'`
+    // console.log(sqlStr)
+    db.all(sqlStr, function (err, result) {
+        if (err) {
+            // console.log(err)
             res.send({
-                state:'fail',
-                data:[]
+                state: 'fail',
+                description:'fail at query api router',
+                data: []
             })
-        }else{
-            console.log(result)
-            if(result.length > 0){
+        } else {
+            // console.log(result)
+            if (result.length > 0) {
                 res.send({
-                    state:'success',
-                    data:result
+                    state: 'success',
+                    data: result
                 })
-            }else{
+            } else {
                 res.send({
-                    state:'success',
-                    data:[]
+                    state: 'success',
+                    data: []
                 })
             }
-            
+
         }
 
     })

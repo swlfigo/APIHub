@@ -8,7 +8,7 @@
           <span style="margin-left: 10px">{{ scope.row }}</span>
         </template>-->
       </el-table-column>
-      <el-table-column label="姓名">
+      <el-table-column label="路由备注">
         <template slot-scope="scope">
           <span>{{ scope.row.name }}</span>
         </template>
@@ -37,7 +37,7 @@
     </el-table>
 
     <!-- dialog -->
-    <el-dialog title="收货地址" :visible.sync="addRouterTableVisible">
+    <el-dialog title="路由编辑器" :visible.sync="addRouterTableVisible">
       <el-form :model="form" :rules="rules" status-icon ref="modifyForm">
         <el-form-item label="描述" :label-width="formLabelWidth">
           <el-input v-model="form.name" autocomplete="off"></el-input>
@@ -47,13 +47,16 @@
         </el-form-item>
         <el-form-item label="Method" :label-width="formLabelWidth" prop="method">
           <el-select v-model="form.method" placeholder="选择Method">
-            <el-option label="Get" value="get"></el-option>
-            <el-option label="Post" value="post"></el-option>
+            <el-option label="GET" value="GET"></el-option>
+            <el-option label="POST" value="POST"></el-option>
           </el-select>
+        </el-form-item>
+        <el-form-item label="JSON" :label-width="formLabelWidth" prop="json">
+          <el-input v-model="form.json" autocomplete="off"></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="addRouterTableVisible = false">取 消</el-button>
+        <el-button @click="cancelMethod('modifyForm')">取 消</el-button>
         <el-button type="primary" @click="addOrUpdateMethod('modifyForm')">确 定</el-button>
       </div>
     </el-dialog>
@@ -65,75 +68,76 @@ import request from "@/utils/request";
 export default {
   name: "HelloWorld",
   data() {
-    // 路由唯一验证
-    let vaildRouter = (rule, value, callback) => {
-      if (!value) {
-        callback(new Error("请输入路由"));
-        return;
-      }
-      console.log(value);
-      request({
-        url: "/queryrouterapi",
-        method: "post",
-        data: { router: value }
-      }).then(response => {
-        if (response.data.state == "success") {
-          if (response.data.data.length > 0) {
-            callback(new Error("存在相应路由"));
-          } else {
-            callback();
-          }
-        } else {
-          callback(new Error("数据库出错"));
-        }
-      });
-    };
     return {
       msg: "Welcome to Your Vue.js App",
       apiArray: [],
       addRouterTableVisible: false,
       form: {},
-      oriform: {
-        id: "",
-        name: "",
-        // 路由默认Get
-        router: "",
-        method: "get",
-        jsonStr: ""
-      },
       formLabelWidth: "120px",
       //校验规则
       rules: {
-        router: [{ required: true, message: "请输入路由", trigger: "blur" }],
+        router: [
+          { required: true, type:'string' , message: "请输入路由", trigger: "blur" },
+          {validator(rule,value,callback,source,options){
+            const errors = []
+            var pattern = new RegExp("[`~!@#$^&*=|{}':;',\\[\\]<>《》?~！@#￥……&*|{}【】‘；：”“'。，、？' ']");
+                  if(pattern.test(value)){
+                        errors.push('输入合适的路由')
+                   }
+                  callback(errors)
+          }}
+        ],
         method: [
           {
             required: true,
             message: "请选择Method",
             trigger: ["change", "blur"]
-          }
+          },
+        ],
+        json:[
+          { required: true , message: "请输入路由", trigger: "blur" },
+          {validator(rule,value,callback,source,options){
+            const error = []
+            if (typeof value == 'string'){
+              try{
+                var obj = JSON.parse(value);
+                if(typeof obj == 'object' && obj){
+                  callback()
+                }else{
+                  callback('请输入正确格式JSON')
+                }
+              }catch(e){
+                callback('请输入正确格式JSON')
+              }
+            }else{
+              callback('非字符')
+            }
+          }}
         ]
       }
     };
   },
   mounted: function() {
-    request({
-      url: "/getrouter",
-      method: "get"
-    }).then(response => {
-      if (response.data.state == "success") {
-        this.apiArray = response.data.data;
-      } else {
-      }
-    });
+    this.requestRouter();
   },
   methods: {
+    requestRouter() {
+      request({
+        url: "/getrouter",
+        method: "get"
+      }).then(response => {
+        if (response.data.state == "success") {
+          this.apiArray = response.data.data;
+        } else {
+        }
+      });
+    },
     showaddrouterdialog() {
       this.form = {};
-      console.log(this.oriform);
       this.showeditarea();
     },
     handleDelete(index) {
-      console.log(index);
+      
       request({
         url: "/deleterouter",
         method: "post",
@@ -141,16 +145,12 @@ export default {
       }).then(response => {
         if (response.data.state == "success") {
           let obj = this.apiArray.splice(index, 1);
-          console.log(obj);
-          console.log(response.data.data);
         } else {
         }
       });
     },
-    handleEdit(index) {
-      // console.log(index)
-      this.form = this.apiArray[index];
-      
+    handleEdit(index, row) {
+      this.form = row;
       this.showeditarea();
     },
     showeditarea() {
@@ -159,13 +159,10 @@ export default {
     addOrUpdateMethod(formName) {
       this.$refs[formName].validate(valid => {
         if (valid) {
-          let _this = this
-          console.log("vail success");
-          console.log(this.$refs[formName])
           request({
             url: "/queryrouterapi",
             method: "post",
-            data: { router: this.$refs[formName].router }
+            data: this.form
           }).then(response => {
             if (response.data.state == "success") {
               if (response.data.data.length > 0) {
@@ -174,16 +171,49 @@ export default {
                   type: "warning"
                 });
               } else {
-                this.addRouterTableVisible = false;
+                // console.log("vail success");
+                //添加或者更新
+                console.log(this.form)
+                if (this.form.id === undefined) {
+                  //新增路由
+                  request({
+                    url: "/addrouter",
+                    method: "post",
+                    data: this.form
+                  }).then(response => {
+                    if (response.data.state == "success") {
+                      // console.log(response)
+                    this.form = {};
+                    this.addRouterTableVisible = false;
+                    this.$refs[formName].resetFields();
+                    this.requestRouter();
+                    this.$message({
+                      message: "插入路由成功",
+                      type: "success"
+                    });
+                    }else{
+                        this.$message.error("插入失败");
+                    }
+                    
+                  });
+                } else {
+                }
               }
             } else {
-              his.$message.error("数据库出错");
+              console.log(response);
+              this.$message.error("数据库出错");
             }
           });
         } else {
-          console.log("vail fail");
+          this.$message.error("请填写必要部分");
         }
       });
+    },
+    cancelMethod(formName) {
+      this.form = {};
+      this.addRouterTableVisible = false;
+      this.$refs[formName].resetFields();
+      this.requestRouter();
     }
   }
 };

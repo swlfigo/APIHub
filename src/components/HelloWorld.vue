@@ -25,7 +25,11 @@
       </el-table-column>
       <el-table-column label="JSON">
         <template slot-scope="scope">
-          <span>{{ scope.row.json }}</span>
+          <!-- <span>{{ scope.row.json }}</span> -->
+                    <!-- <el-row v-for="json in JSON.parse(scope.row.json)" :key="json">
+               {{json}}
+          </el-row> -->
+          <span>{{JSON.parse(scope.row.json)}}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作">
@@ -37,7 +41,7 @@
     </el-table>
 
     <!-- dialog -->
-    <el-dialog title="路由编辑器" :visible.sync="addRouterTableVisible">
+    <el-dialog title="路由编辑器" :visible.sync="addRouterTableVisible" @close="dialogClose('modifyForm')">
       <el-form :model="form" :rules="rules" status-icon ref="modifyForm">
         <el-form-item label="描述" :label-width="formLabelWidth">
           <el-input v-model="form.name" autocomplete="off"></el-input>
@@ -52,7 +56,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="JSON" :label-width="formLabelWidth" prop="json">
-          <el-input v-model="form.json" autocomplete="off"></el-input>
+          <el-input v-model="form.json" type="textarea" :rows="25" ></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -95,7 +99,7 @@ export default {
           },
         ],
         json:[
-          { required: true , message: "请输入路由", trigger: "blur" },
+          { required: false , message: "请输入JSON", trigger: "blur" },
           {validator(rule,value,callback,source,options){
             const error = []
             if (typeof value == 'string'){
@@ -151,6 +155,7 @@ export default {
     },
     handleEdit(index, row) {
       this.form = row;
+      this.form.json = JSON.parse(this.form.json)
       this.showeditarea();
     },
     showeditarea() {
@@ -210,8 +215,13 @@ export default {
       });
     },
     cancelMethod(formName) {
-      this.form = {};
+
       this.addRouterTableVisible = false;
+
+    },
+    dialogClose(formName){
+      console.log('close')
+      this.form = {};
       this.$refs[formName].resetFields();
       this.requestRouter();
     }

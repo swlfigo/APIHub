@@ -40,7 +40,7 @@ router.get('/getrouter', function (req, res) {
 
 router.post('/addrouter', function (req, res) {
     console.log('addRouter',req.body)
-    let insertStr = `INSERT INTO api (id,name,router,method,json) VALUES(NULL, '${req.body.name}','${req.body.router}','${req.body.method}','${JSON.stringify(req.body.json)}')`
+    let insertStr = `INSERT INTO api (id,name,router,method,json) VALUES(NULL, '${req.body.name}','${req.body.router}','${req.body.method}','${JSON.stringify(req.body.json,null,2)}')`
     let searchStr = `SELECT * FROM api WHERE router = '${req.body.router}' AND method = '${req.body.method}'`
     db.all(searchStr, function (err, result) {
         if (err) {

@@ -8,7 +8,7 @@ const db = new sqlite3.Database('./api.db')
 var routerHandler = function (req, res, next) {
   console.log('LOGGED:' + req.path)
   let sqlStr = `SELECT * FROM api WHERE router = '${(req.path)}' AND method = '${req.method}'`
-  console.log(sqlStr)
+  // console.log(sqlStr)
   db.all(sqlStr, function (err, result) {
     if (err) {
       res.send({
@@ -17,10 +17,10 @@ var routerHandler = function (req, res, next) {
       })
     } else {
       if (result.length > 0) {
-        console.log(result.length)
+        // console.log(result.length)
         if(result.length === 1){
           let jsonla = JSON.parse(result[0].json)
-          console.log(jsonla)
+          // console.log(jsonla)
           res.type('application/json')
           res.send(jsonla)
 
@@ -32,7 +32,7 @@ var routerHandler = function (req, res, next) {
         }
         
       } else {
-        console.log('not in db')
+        // console.log('not in db')
         next()
       }
 
@@ -49,12 +49,12 @@ app.use(routerHandler)
 app.use(bodyParser.json());
 app.use(express.static(__dirname + '/static'))
 // app.all('*', function(req, res, next) {
-//     res.header("Access-Control-Allow-Origin", "*");
-//     res.header("Access-Control-Allow-Headers", "X-Requested-With");
-//     res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
-//     res.header("X-Powered-By",' 3.2.1')
-//     res.header("Content-Type", "application/json;charset=utf-8");
-//     next();
+    // res.header("Access-Control-Allow-Origin", "*");
+    // res.header("Access-Control-Allow-Headers", "X-Requested-With");
+    // res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
+    // res.header("X-Powered-By",' 3.2.1')
+    // res.header("Content-Type", "application/json;charset=utf-8");
+    // next();
 // });
 app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");

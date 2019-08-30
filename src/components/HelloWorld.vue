@@ -26,9 +26,9 @@
       <el-table-column label="JSON">
         <template slot-scope="scope">
           <!-- <span>{{ scope.row.json }}</span> -->
-                    <!-- <el-row v-for="json in JSON.parse(scope.row.json)" :key="json">
+          <!-- <el-row v-for="json in JSON.parse(scope.row.json)" :key="json">
                {{json}}
-          </el-row> -->
+          </el-row>-->
           <span>{{JSON.parse(scope.row.json)}}</span>
         </template>
       </el-table-column>
@@ -41,7 +41,11 @@
     </el-table>
 
     <!-- dialog -->
-    <el-dialog title="路由编辑器" :visible.sync="addRouterTableVisible" @close="dialogClose('modifyForm')">
+    <el-dialog
+      title="路由编辑器"
+      :visible.sync="addRouterTableVisible"
+      @close="dialogClose('modifyForm')"
+    >
       <el-form :model="form" :rules="rules" status-icon ref="modifyForm">
         <el-form-item label="描述" :label-width="formLabelWidth">
           <el-input v-model="form.name" autocomplete="off"></el-input>
@@ -56,7 +60,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="JSON" :label-width="formLabelWidth" prop="json">
-          <el-input v-model="form.json" type="textarea" :rows="25" ></el-input>
+          <el-input v-model="form.json" type="textarea" :rows="15"></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -81,42 +85,53 @@ export default {
       //校验规则
       rules: {
         router: [
-          { required: true, type:'string' , message: "请输入路由", trigger: "blur" },
-          {validator(rule,value,callback,source,options){
-            const errors = []
-            var pattern = new RegExp("[`~!@#$^&*=|{}':;',\\[\\]<>《》?~！@#￥……&*|{}【】‘；：”“'。，、？' ']");
-                  if(pattern.test(value)){
-                        errors.push('输入合适的路由')
-                   }
-                  callback(errors)
-          }}
+          {
+            required: true,
+            type: "string",
+            message: "请输入路由",
+            trigger: "blur"
+          },
+          {
+            validator(rule, value, callback, source, options) {
+              const errors = [];
+              var pattern = new RegExp(
+                "[`~!@#$^&*=|{}':;',\\[\\]<>《》?~！@#￥……&*|{}【】‘；：”“'。，、？' ']"
+              );
+              if (pattern.test(value)) {
+                errors.push("输入合适的路由");
+              }
+              callback(errors);
+            }
+          }
         ],
         method: [
           {
             required: true,
             message: "请选择Method",
             trigger: ["change", "blur"]
-          },
+          }
         ],
-        json:[
-          { required: false , message: "请输入JSON", trigger: "blur" },
-          {validator(rule,value,callback,source,options){
-            const error = []
-            if (typeof value == 'string'){
-              try{
-                var obj = JSON.parse(value);
-                if(typeof obj == 'object' && obj){
-                  callback()
-                }else{
-                  callback('请输入正确格式JSON')
+        json: [
+          { required: false, message: "请输入JSON", trigger: "blur" },
+          {
+            validator(rule, value, callback, source, options) {
+              const error = [];
+              if (typeof value == "string") {
+                try {
+                  var obj = JSON.parse(value);
+                  if (typeof obj == "object" && obj) {
+                    callback();
+                  } else {
+                    callback("请输入正确格式JSON");
+                  }
+                } catch (e) {
+                  callback("请输入正确格式JSON");
                 }
-              }catch(e){
-                callback('请输入正确格式JSON')
+              } else {
+                callback("非字符");
               }
-            }else{
-              callback('非字符')
             }
-          }}
+          }
         ]
       }
     };
@@ -141,7 +156,6 @@ export default {
       this.showeditarea();
     },
     handleDelete(index) {
-      
       request({
         url: "/deleterouter",
         method: "post",
@@ -155,7 +169,7 @@ export default {
     },
     handleEdit(index, row) {
       this.form = row;
-      this.form.json = JSON.parse(this.form.json)
+      // this.form.json = JSON.parse(this.form.json);
       this.showeditarea();
     },
     showeditarea() {
@@ -164,63 +178,73 @@ export default {
     addOrUpdateMethod(formName) {
       this.$refs[formName].validate(valid => {
         if (valid) {
-          request({
-            url: "/queryrouterapi",
-            method: "post",
-            data: this.form
-          }).then(response => {
-            if (response.data.state == "success") {
-              if (response.data.data.length > 0) {
-                this.$message({
-                  message: "存在相应路由",
-                  type: "warning"
-                });
-              } else {
-                // console.log("vail success");
-                //添加或者更新
-                console.log(this.form)
-                if (this.form.id === undefined) {
-                  //新增路由
-                  request({
-                    url: "/addrouter",
-                    method: "post",
-                    data: this.form
-                  }).then(response => {
-                    if (response.data.state == "success") {
-                      // console.log(response)
-                    this.form = {};
-                    this.addRouterTableVisible = false;
-                    this.$refs[formName].resetFields();
-                    this.requestRouter();
-                    this.$message({
-                      message: "插入路由成功",
-                      type: "success"
-                    });
-                    }else{
-                        this.$message.error("插入失败");
-                    }
-                    
+          if (this.form.id === undefined) {
+            //新增路由
+            request({
+              url: "/queryrouterapi",
+              method: "post",
+              data: this.form
+            }).then(response => {
+              if (response.data.state == "success") {
+                if (response.data.data.length > 0) {
+                  this.$message({
+                    message: "存在相应路由",
+                    type: "warning"
                   });
                 } else {
+                  this.addRouterMethod("modifyForm");
                 }
+              } else {
+                console.log(response);
+                this.$message.error("数据库出错");
               }
-            } else {
-              console.log(response);
-              this.$message.error("数据库出错");
-            }
-          });
+            });
+          } else {
+            //更新数据
+            this.addRouterMethod("modifyForm");
+          }
         } else {
           this.$message.error("请填写必要部分");
         }
       });
     },
-    cancelMethod(formName) {
-
-      this.addRouterTableVisible = false;
-
+    addRouterMethod(formName) {
+      if (this.form === {}) {
+        return;
+      }
+      request({
+        url: "/addrouter",
+        method: "post",
+        data: this.form
+      }).then(response => {
+        if (response.data.state == "success") {
+          console.log('alaalalalalal')
+          if (this.form.id === undefined) {
+            this.$message({
+              message: "插入路由成功",
+              type: "success"
+            });
+          } else {
+            this.$message({
+              message: "更新路由成功",
+              type: "success"
+            });
+          }
+          this.form = {};
+          this.addRouterTableVisible = false;
+          this.$refs[formName].resetFields();
+          this.requestRouter();
+        } else {
+          this.$message.error("插入失败");
+        }
+      });
     },
-    dialogClose(formName){
-      console.log('close')
+
+    cancelMethod(formName) {
+      this.addRouterTableVisible = false;
+    },
+    dialogClose(formName) {
+      console.log("close");
       this.form = {};
       this.$refs[formName].resetFields();
       this.requestRouter();

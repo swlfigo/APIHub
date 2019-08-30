@@ -39,48 +39,74 @@ router.get('/getrouter', function (req, res) {
 })
 
 router.post('/addrouter', function (req, res) {
-    console.log('addRouter',req.body)
-    let insertStr = `INSERT INTO api (id,name,router,method,json) VALUES(NULL, '${req.body.name}','${req.body.router}','${req.body.method}','${JSON.stringify(req.body.json,null,2)}')`
+
+    let insertStr = `INSERT INTO api (id,name,router,method,json) VALUES(NULL, '${req.body.name}','${req.body.router}','${req.body.method}','${req.body.json}')`
     let searchStr = `SELECT * FROM api WHERE router = '${req.body.router}' AND method = '${req.body.method}'`
-    db.all(searchStr, function (err, result) {
-        if (err) {
-            res.send({
-                state: 'fail',
-                description: 'fail at search sql Str',
-                data: []
-            })
-        } else {
-            if (result.length > 0) {
+    var inputData = [req.body.name,req.body.router,req.body.method,req.body.json,req.body.id]
+    console.log(inputData)
+    let updateStr = "UPDATE api SET name =?,router=? , method=? ,json=? WHERE id=?"
+    if(req.body.id !== undefined){
+        
+        //更新路由
+        db.run(updateStr,inputData,function(err,result){
+            console.log(err)
+            if (err) {
                 res.send({
                     state: 'fail',
-                    description: 'fail at Same Router',
+                    description: 'fail at update sql Str',
                     data: []
                 })
-
             } else {
-                console.log(insertStr)
-                db.run(insertStr, function (errInsertStr, insertResult) {
-                    console.log(errInsertStr)
-                    if (err) {
-                        res.send({
-                            state: 'fail',
-                            description: 'fail at insert Router',
-                            data: []
-                        })
-                    } else {
-                        res.send({
-                            state: 'success',
-                            data: []
-                        })
-                    }
-
+                res.send({
+                    state: 'success',
+                    description: 'success update Router',
+                    data: []
                 })
-
             }
-
-        }
-
-    });
+        })
+    }else{
+        //插入路由
+        db.all(searchStr, function (err, result) {
+            if (err) {
+                res.send({
+                    state: 'fail',
+                    description: 'fail at search sql Str',
+                    data: []
+                })
+            } else {
+                if (result.length > 0) {
+                    res.send({
+                        state: 'fail',
+                        description: 'fail at Same Router',
+                        data: []
+                    })
+    
+                } else {
+                    console.log(insertStr)
+                    db.run(insertStr, function (errInsertStr, insertResult) {
+                        console.log(errInsertStr)
+                        if (err) {
+                            res.send({
+                                state: 'fail',
+                                description: 'fail at insert Router',
+                                data: []
+                            })
+                        } else {
+                            res.send({
+                                state: 'success',
+                                data: []
+                            })
+                        }
+    
+                    })
+    
+                }
+    
+            }
+    
+        });
+    }
+    
 })
 
 router.post('/deleterouter', function (req, res) {

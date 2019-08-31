@@ -3,12 +3,18 @@ const router = require('./router/router')
 const app = express()
 const sqlite3 = require('sqlite3')
 const db = new sqlite3.Database('./api.db')
-
+// 引入json解析中间件
+var bodyParser = require('body-parser');
 
 var routerHandler = function (req, res, next) {
-  console.log('LOGGED:' + req.path)
+  console.log('APIHUB Incoming Path:' + req.path )
+  console.log('Method:' + req.method)
+  console.log(req.body)
+  if ( req.method === 'POST' && req.body !== undefined){
+    console.log('Post BOdy:' + req.body)
+  }
   let sqlStr = `SELECT * FROM api WHERE router = '${(req.path)}' AND method = '${req.method}'`
-  // console.log(sqlStr)
+  
   db.all(sqlStr, function (err, result) {
     if (err) {
       res.send({
@@ -42,8 +48,7 @@ var routerHandler = function (req, res, next) {
 }
 
 
-// 引入json解析中间件
-var bodyParser = require('body-parser');
+
 // 添加json解析
 app.use(routerHandler)
 app.use(bodyParser.json());

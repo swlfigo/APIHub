@@ -39,10 +39,13 @@ router.get('/getrouter', function (req, res) {
 })
 
 router.post('/addrouter', function (req, res) {
-
-    let insertStr = `INSERT INTO api (id,name,router,method,json) VALUES(NULL, '${req.body.name}','${req.body.router}','${req.body.method}','${req.body.json}')`
+    var routerDescritpion = req.body.name
+    if(routerDescritpion === undefined){
+        routerDescritpion = ""
+    }
+    let insertStr = `INSERT INTO api (id,name,router,method,json) VALUES(NULL, '${routerDescritpion}','${req.body.router}','${req.body.method}','${req.body.json}')`
     let searchStr = `SELECT * FROM api WHERE router = '${req.body.router}' AND method = '${req.body.method}'`
-    var inputData = [req.body.name,req.body.router,req.body.method,req.body.json,req.body.id]
+    var inputData = [routerDescritpion,req.body.router,req.body.method,req.body.json,req.body.id]
     console.log(inputData)
     let updateStr = "UPDATE api SET name =?,router=? , method=? ,json=? WHERE id=?"
     if(req.body.id !== undefined){

@@ -73,6 +73,7 @@
 
 <script>
 import request from "@/utils/request";
+let _ = require('lodash')
 export default {
   name: "HelloWorld",
   data() {
@@ -99,6 +100,11 @@ export default {
               );
               if (pattern.test(value)) {
                 errors.push("输入合适的路由");
+              }
+              if(value.length>0){
+                if(value[0] !== '/'){
+                  errors.push("请输入 / 开头的路由地址");
+                }
               }
               callback(errors);
             }
@@ -148,11 +154,13 @@ export default {
         if (response.data.state == "success") {
           this.apiArray = response.data.data;
         } else {
+          this.$message.error("服务器后端似乎没有连接上");
         }
       });
     },
     showaddrouterdialog() {
-      this.form = {};
+      let cloneObj = _.cloneDeep({})
+      this.form = cloneObj
       this.showeditarea();
     },
     handleDelete(index) {
@@ -163,13 +171,18 @@ export default {
       }).then(response => {
         if (response.data.state == "success") {
           let obj = this.apiArray.splice(index, 1);
+          this.$message({
+              message: "删除路由成功",
+              type: "success"
+            });
         } else {
+          this.$message.error("路由无法删除");
         }
       });
     },
     handleEdit(index, row) {
-      this.form = row;
-      // this.form.json = JSON.parse(this.form.json);
+      let cloneObj = _.cloneDeep(row)
+      this.form = cloneObj;
       this.showeditarea();
     },
     showeditarea() {
@@ -218,7 +231,6 @@ export default {
         data: this.form
       }).then(response => {
         if (response.data.state == "success") {
-          console.log('alaalalalalal')
           if (this.form.id === undefined) {
             this.$message({
               message: "插入路由成功",
@@ -244,10 +256,8 @@ export default {
       this.addRouterTableVisible = false;
     },
     dialogClose(formName) {
-      console.log("close");
       this.form = {};
       this.$refs[formName].resetFields();
-      this.requestRouter();
     }
   }
 };

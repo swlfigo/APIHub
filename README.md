@@ -1,4 +1,10 @@
-# apihub
+# APIHub
+
+一个基于 `Vue3.x` + `Express4.x` 的 `App` 后端接口数据模拟工具
+
+本地使用 `SQLite3` 数据库存储路由数据
+
+
 
 > A Vue.js project
 

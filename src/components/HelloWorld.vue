@@ -1,6 +1,5 @@
 <template>
   <div>
-    <h1 align="center">{{ msg }}</h1>
     <el-button class="marginClass" @click="showaddrouterdialog">新增路由</el-button>
     <el-table :data="apiArray" style="width: 100%">
       <el-table-column label="ID" type="index">

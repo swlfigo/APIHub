@@ -6,7 +6,7 @@
 
 本地使用 `SQLite3` 数据库存储路由数据
 
-当然可以使用 `Charles` 或者本地搭建 `Nginx / Apache` 模拟服务器返回数据
+其他方法:可以使用 `Charles` 或者本地搭建 `Nginx / Apache` 模拟服务器返回数据
 
 # Usage
 
